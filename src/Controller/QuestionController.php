@@ -7,7 +7,13 @@ use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\Question;
+use App\Repository\QuestionRepository;
+use Doctrine\ORM\EntityManager;
 use Twig\Environment;
+use Doctrine\ORM\EntityManagerInterface;
+use Dom\Entity;
+use Symfony\Component\HttpFoundation\Request;
 
 class QuestionController extends AbstractController
 {
@@ -20,26 +26,30 @@ class QuestionController extends AbstractController
         $this->isDebug = $isDebug;
     }
 
-
-    /**
+    /**     
      * @Route("/", name="app_homepage")
      */
-    public function homepage(Environment $twigEnvironment)
+    public function homepage(QuestionRepository $repository)
     {
-        /*
-        // fun example of using the Twig service directly!
-        $html = $twigEnvironment->render('question/homepage.html.twig');
+        $questions = $repository->findAllAskedOrderedByNewest();
 
-        return new Response($html);
-        */
+        return $this->render('question/homepage.html.twig', [
+            'questions' => $questions,
+        ]);
+    }
 
-        return $this->render('question/homepage.html.twig');
+    /** 
+     * @Route("/questions/new")
+     */
+    public function new(EntityManagerInterface $entityManager)
+    {
+        return new Response('Sounds like a great idea! But this feature is not implemented yet.');
     }
 
     /**
      * @Route("/questions/{slug}", name="app_question_show")
      */
-    public function show($slug, MarkdownHelper $markdownHelper)
+    public function show(Question $question)
     {
         if ($this->isDebug) {
             $this->logger->info('We are in debug mode!');
@@ -50,14 +60,29 @@ class QuestionController extends AbstractController
             'Honestly, I like furry shoes better than MY cat',
             'Maybe... try saying the spell backwards?',
         ];
-        $questionText = 'I\'ve been turned into a cat, any *thoughts* on how to turn back? While I\'m **adorable**, I don\'t really care for cat food.';
-
-        $parsedQuestionText = $markdownHelper->parse($questionText);
 
         return $this->render('question/show.html.twig', [
-            'question' => ucwords(str_replace('-', ' ', $slug)),
-            'questionText' => $parsedQuestionText,
+            'question' => $question,
             'answers' => $answers,
+        ]);
+    }
+
+    /**
+     * @Route("/questions/{slug}/vote", name="app_question_vote", methods="POST")
+     */
+    public function questionVote(Question $question, Request $request, EntityManagerInterface $entityManager)
+    {
+        $direction = $request->request->get('direction');
+        if ($direction === 'up') {
+            $question->upVote();
+        } elseif ($direction === 'down') {
+            $question->downVote();
+        }
+
+        $entityManager->flush();
+
+        return $this->redirectToRoute('app_question_show', [
+            'slug' => $question->getSlug(),
         ]);
     }
 }

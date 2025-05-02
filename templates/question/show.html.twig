@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Question: {{ question }}{% endblock %}
+{% block title %}Question: {{ question.name }}{% endblock %}
 
 {% block body %}
 <div class="container">
@@ -12,12 +12,26 @@
                     <div class="row">
                         <div class="col-2 text-center">
                             <img src="{{ asset('images/tisha.png') }}" width="100" height="100"  alt="Tisha avatar">
+                            <div class="mt-3">
+                                <small>
+                                    Asked At <br>
+                                    {{  question.askedAt| ago }}
+                                </small>
+
+                                <form action="{{ path('app_question_vote', {slug: question.slug}) }}" method="post"  >
+                                    <div class="vote-arrows vote-arrows-alt flex-fill pt-2" style="min-width: 90px;">
+                                        <button class="vote-up btn btn-link" name="direction" value="up"><i class="far fa-arrow-alt-circle-up"></i></button>
+                                        <button class="vote-down btn btn-link" name="direction" value="down"><i class="far fa-arrow-alt-circle-down"></i></button>
+                                        <span>{{ question.votesString }}</span>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                         <div class="col">
-                            <h1 class="q-title-show">{{ question }}</h1>
+                            <h1 class="q-title-show">{{ question.name }}</h1>
                             <div class="q-display p-3">
                                 <i class="fa fa-quote-left mr-3"></i>
-                                <p class="d-inline">{{ questionText|raw }}</p>
+                                <p class="d-inline">{{ question.question|raw }}</p>
                                 <p class="pt-4"><strong>--Tisha</strong></p>
                             </div>
                         </div>
@@ -46,8 +60,8 @@
                         <p>-- Mallory</p>
                     </div>
                     <div class="vote-arrows flex-fill pt-2 js-vote-arrows" style="min-width: 90px;">
-                        <a class="vote-up" href="#" data-direction="up"><i class="far fa-arrow-alt-circle-up"></i></a>
-                        <a class="vote-down" href="#" data-direction="down"><i class="far fa-arrow-alt-circle-down"></i></a>
+                        <button class="vote-up btn btn-link" name="direction" value="up"><i class="far fa-arrow-alt-circle-up"></i></button>
+                        <button class="vote-down btn btn-link" name="direction" value="down"><i class="far fa-arrow-alt-circle-down"></i></button>
                         <span>+ <span class="js-vote-total">6</span></span>
                     </div>
                 </div>
